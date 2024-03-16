@@ -23,7 +23,11 @@ public:
 
 private:
     GLFWwindow *m_curr_window = nullptr;
-    float m_aspect_ratio = 0.0f;
+
+    int32_t m_width = 0;
+    int32_t m_height = 0;
+    bool m_mouse_clicked = false;
+
     Renderer m_renderer = Renderer{};
 
     int init();

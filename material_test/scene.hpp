@@ -4,6 +4,7 @@
 #include "globals.hpp"
 
 #include "camera.hpp"
+#include "shader.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
 #include "object.hpp"
@@ -22,6 +23,11 @@ public:
         return m_objects;
     }
 
+    [[nodiscard]] inline std::vector<Object> &getObjects() {
+        return m_objects;
+    }
+
+
     [[nodiscard]] inline const std::vector<Mesh> &getMeshes() const {
         return m_meshes;
     }
@@ -38,15 +44,17 @@ public:
         return m_materials.at(mat_id);
     }
 
-    static Scene getDefaultScene();
+    void initScene() const;
 
-    static Scene getMaterialTestScene();
+    static Scene getDefaultScene(uint32_t shader_pbr);
+
+    static Scene getMaterialTestScene(uint32_t shader_pbr, uint32_t shader_debug_normal);
 
 private:
-    Camera m_camera;
-    std::vector<Material> m_materials;
-    std::vector<Mesh> m_meshes;
-    std::vector<Object> m_objects;
+    Camera m_camera = Camera{};
+    std::vector<Material> m_materials = {};
+    std::vector<Mesh> m_meshes = {};
+    std::vector<Object> m_objects = {};
 };
 
 

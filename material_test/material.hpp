@@ -4,28 +4,39 @@
 #include <utility>
 
 #include "globals.hpp"
+#include "shader.hpp"
 
+#include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+
+struct MaterialData {
+    glm::vec3 baseColor = glm::vec4{0.5f, 0.5f, 0.5f, 1.0f};
+    float metallic = 0.0f;
+    float roughness = 0.5f;
+};
 
 class Material {
 public:
-    Material() = default;
+    explicit Material(uint32_t shader, const glm::vec3 &color, float metallic, float roughness) :
+            m_shader{shader},
+            m_data{color, metallic, roughness},
+            m_data_buffer{INVALID_OPENGL_OBJECT_ID} {};
 
-    ~Material() = default;
+    explicit Material(uint32_t shader) :
+            m_shader{shader},
+            m_data{},
+            m_data_buffer{INVALID_OPENGL_OBJECT_ID} {};
 
-    explicit Material(std::string shader_name);
+    [[nodiscard]] inline uint32_t getShader() const {
+        return m_shader;
+    }
 
-    void initMaterial() const;
-    void bindMaterial() const;
+    void setMaterialData(const glm::mat4 &transform) const;
 
-    void setTransformData(const glm::mat4 &mat) const;
-
-    static const Material DEFAULT;
 private:
-    std::string m_shader_name = DEFAULT_SHADER_NAME;
-    mutable uint32_t m_vertex_shader = INVALID_OPENGL_OBJECT_ID;
-    mutable uint32_t m_frag_shader = INVALID_OPENGL_OBJECT_ID;
-    mutable uint32_t m_shader = INVALID_OPENGL_OBJECT_ID;
+    uint32_t m_shader = INVALID_OPENGL_OBJECT_ID;
+    MaterialData m_data = MaterialData{};
+    mutable uint32_t m_data_buffer = INVALID_OPENGL_OBJECT_ID;
 };
 
 #endif //MATERIAL_TEST_MATERIAL_HPP

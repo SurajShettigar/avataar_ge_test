@@ -1,6 +1,7 @@
 #include "app.hpp"
 
 #include "globals.hpp"
+#include <iostream>
 
 int App::init() {
     if (glfwInit()) {
@@ -24,15 +25,27 @@ int App::init() {
 }
 
 void App::update() {
+    int state = glfwGetKey(m_curr_window, GLFW_KEY_ESCAPE);
+    if (state == GLFW_PRESS) {
+        glfwSetWindowShouldClose(m_curr_window, 1);
+    }
 
+    state = glfwGetMouseButton(m_curr_window, GLFW_MOUSE_BUTTON_1);
+    if (state == GLFW_PRESS && !m_mouse_clicked) {
+        double x_pos, y_pos;
+        glfwGetCursorPos(m_curr_window, &x_pos, &y_pos);
+        m_renderer.update(x_pos, y_pos);
+        m_mouse_clicked = true;
+    }
 }
 
 void App::render() {
-    m_renderer.render(m_aspect_ratio);
+    m_renderer.render(m_width, m_height);
 }
 
 void App::lateUpdate() {
-
+    int state = glfwGetMouseButton(m_curr_window, GLFW_MOUSE_BUTTON_1);
+    m_mouse_clicked = state == GLFW_PRESS;
 }
 
 void App::clean() {
@@ -48,21 +61,18 @@ int App::run() {
     int status = init();
     if (!status) {
         while (!glfwWindowShouldClose(m_curr_window)) {
-            int width = 0;
-            int height = 0;
-            glfwGetFramebufferSize(m_curr_window, &width, &height);
-            m_aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
+            glfwPollEvents();
             update();
 
-            glViewport(0, 0, width, height);
+            glfwGetFramebufferSize(m_curr_window, &m_width, &m_height);
 
+            glViewport(0, 0, m_width, m_height);
             glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
             render();
 
             glfwSwapBuffers(m_curr_window);
-            glfwPollEvents();
 
             lateUpdate();
         }

@@ -5,6 +5,7 @@
 #define MATERIAL_TEST_MESH_HPP
 
 #include "globals.hpp"
+#include "aabb.hpp"
 
 #include <glm/vec3.hpp>
 
@@ -22,8 +23,14 @@ public:
     explicit Mesh(const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
 
     void initBuffers() const;
+
     void bindBuffers() const;
+
     void draw() const;
+
+    inline const AABB &getBounds() const {
+        return m_bounds;
+    }
 
     static const Mesh DEFAULT;
 private:
@@ -32,6 +39,8 @@ private:
     mutable uint32_t m_vao = INVALID_OPENGL_OBJECT_ID;
     mutable uint32_t m_vbo = INVALID_OPENGL_OBJECT_ID;
     mutable uint32_t m_ebo = INVALID_OPENGL_OBJECT_ID;
+
+    AABB m_bounds = AABB{};
 };
 
 

@@ -6,74 +6,45 @@
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
 
-const Material Material::DEFAULT{"material_lambert"};
-
-Material::Material(std::string shader_name) : m_shader_name{std::move(shader_name)},
-                                              m_vertex_shader{INVALID_OPENGL_OBJECT_ID},
-                                              m_frag_shader{INVALID_OPENGL_OBJECT_ID} {
-}
-
-void Material::initMaterial() const {
-    const Filepath dir = Filepath(DEFAULT_SHADER_DIRECTORY);
-    const Filepath v_shader_name = dir / Filepath(m_shader_name + DEFAULT_SHADER_EXTENSION_VERTEX);
-    const Filepath f_shader_name = dir / Filepath(m_shader_name + DEFAULT_SHADER_EXTENSION_FRAGMENT);
-
-    if (!fileExists(v_shader_name) || !fileExists(f_shader_name))
-        return;
-
-    std::vector<char> v_shader_source(getFileSize(v_shader_name));
-    std::vector<char> f_shader_source(getFileSize(f_shader_name));
-
-    if (readFile(v_shader_name, false, v_shader_source.data()) != v_shader_source.size())
-        return;
-
-    if (readFile(f_shader_name, false, f_shader_source.data()) != f_shader_source.size())
-        return;
-
-    m_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    m_frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-
-    const char *v_data = v_shader_source.data();
-    glShaderSource(m_vertex_shader, 1, &v_data, nullptr);
-    glCompileShader(m_vertex_shader);
-
-    int success;
-    char log[512];
-    glGetShaderiv(m_vertex_shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(m_vertex_shader, 512, NULL, log);
-        std::cout << "Vertex Shader: " << v_shader_name << " failed to compile: " << log << std::endl;
-    }
-
-    const char *f_data = f_shader_source.data();
-    glShaderSource(m_frag_shader, 1, &f_data, nullptr);
-    glCompileShader(m_frag_shader);
-    glGetShaderiv(m_frag_shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(m_frag_shader, 512, NULL, log);
-        std::cout << "Fragment Shader: " << f_shader_name << " failed to compile: " << log << std::endl;
-    }
-
-    m_shader = glCreateProgram();
-    glAttachShader(m_shader, m_vertex_shader);
-    glAttachShader(m_shader, m_frag_shader);
-    glLinkProgram(m_shader);
-    glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(m_shader, 512, NULL, log);
-        std::cout << "Shader: " << m_shader_name << " failed to compile: " << log << std::endl;
-    }
-
-    glDeleteShader(m_vertex_shader);
-    glDeleteShader(m_frag_shader);
-}
-
-void Material::bindMaterial() const {
-    glUseProgram(m_shader);
-}
-
-void Material::setTransformData(const glm::mat4 &mat) const {
-    int32_t loc = glGetUniformLocation(m_shader, SHADER_UNIFORM_NAME_TRANSFORM.c_str());
+void Material::setMaterialData(const glm::mat4 &transform) const {
+    // Set camera uniform block binding
+    int32_t loc = glGetUniformBlockIndex(m_shader, SHADER_UNIFORM_NAME_CAM_DATA.c_str());
     if (loc > -1)
-        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat));
+        glUniformBlockBinding(m_shader, loc, SHADER_UNIFORM_BINDING_CAM_DATA);
+
+    // Set model transformation matrix
+    loc = glGetUniformLocation(m_shader, SHADER_UNIFORM_NAME_TRANSFORM.c_str());
+    if (loc > -1)
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(transform));
+
+
+    // Set material data
+//    loc = glGetUniformBlockIndex(m_shader, SHADER_UNIFORM_NAME_MATERIAL_DATA.c_str());
+//    if (loc > -1)
+//        glUniformBlockBinding(m_shader, loc, SHADER_UNIFORM_BINDING_MATERIAL_DATA);
+//
+//    size_t data_size = alignSize(sizeof(MaterialData), 16);
+//    if (m_data_buffer == INVALID_OPENGL_OBJECT_ID) {
+//        glGenBuffers(1, &m_data_buffer);
+//        glBindBuffer(GL_UNIFORM_BUFFER, m_data_buffer);
+//        glBufferData(GL_UNIFORM_BUFFER, static_cast<GLintptr>(data_size), nullptr, GL_STATIC_DRAW);
+//        glBindBuffer(GL_UNIFORM_BUFFER, SHADER_UNIFORM_BINDING_MATERIAL_DATA);
+//        glBindBufferRange(GL_UNIFORM_BUFFER, SHADER_UNIFORM_BINDING_MATERIAL_DATA, m_data_buffer, 0,
+//                          static_cast<GLintptr>(data_size));
+//    }
+//
+//    glBindBuffer(GL_UNIFORM_BUFFER, m_data_buffer);
+//    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(MaterialData), &m_data);
+//    glBindBuffer(GL_UNIFORM_BUFFER, SHADER_UNIFORM_BINDING_MATERIAL_DATA);
+
+
+    loc = glGetUniformLocation(m_shader, "baseColor");
+    if (loc > -1)
+        glUniform3fv(loc, 1, glm::value_ptr(m_data.baseColor));
+    loc = glGetUniformLocation(m_shader, "metallic");
+    if (loc > -1)
+        glUniform1f(loc, m_data.metallic);
+    loc = glGetUniformLocation(m_shader, "roughness");
+    if (loc > -1)
+        glUniform1f(loc, m_data.roughness);
 }

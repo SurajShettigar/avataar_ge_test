@@ -2,6 +2,7 @@
 #define MATERIAL_TEST_OBJECT_HPP
 
 #include "globals.hpp"
+#include "aabb.hpp"
 
 #include <glm/mat4x4.hpp>
 
@@ -18,6 +19,10 @@ public:
         return m_material;
     }
 
+    inline void setMaterial(uint32_t material) {
+        m_material = material;
+    }
+
     [[nodiscard]] inline const glm::mat4x4 &getTransform() const {
         return m_transform;
     }
@@ -28,6 +33,11 @@ public:
 
     inline void setTransform(const glm::mat4x4 &mat) {
         m_transform = mat;
+    }
+
+    inline AABB transformAABB(const AABB &bounds) const {
+        return AABB(glm::vec3(m_transform * glm::vec4(bounds.getMin(), 1.0)),
+                    glm::vec3(m_transform * glm::vec4(bounds.getMax(), 1.0)));
     }
 
 private:

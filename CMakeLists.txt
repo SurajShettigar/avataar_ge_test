@@ -4,7 +4,9 @@ project(material_test)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(material_test
+        material_test/aabb.cpp
         material_test/camera.cpp
+        material_test/shader.cpp
         material_test/material.cpp
         material_test/mesh.cpp
         material_test/object.cpp

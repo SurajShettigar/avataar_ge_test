@@ -19,7 +19,7 @@ out VSOut {
 
 void main() {
     vsOut.worldPos = projMat * viewMat * modelMat * vec4(vPos, 1.0);
-    vsOut.worldNormal = mat3(transpose(inverse(modelMat))) * vNormal;
+    vsOut.worldNormal = normalize(transpose(inverse(mat3(modelMat))) * vNormal);
     vsOut.viewPos = vec3(position);
 
     gl_Position = vsOut.worldPos;
